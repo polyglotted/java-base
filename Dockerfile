@@ -24,7 +24,10 @@ RUN apk add --update bash curl ca-certificates && \
     curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" \
         "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/server-jre-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz" \
         | gunzip -c - | tar -xf - && \
-    apk del ca-certificates && \
+    curl -o /usr/local/bin/wait-on.sh \
+        "https://gist.githubusercontent.com/pgtdev/205ecd4a7fa5216c5da7ffe160eff6b8/raw/0cffee1aff55888a04350190861178e0c085994f/wait-on.sh" && \
+        chmod 755 /usr/local/bin/wait-on.sh && \
+    apk del curl ca-certificates && \
     mv jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR}/jre /jre && \
     rm /jre/bin/jjs && \
     rm /jre/bin/keytool && \
