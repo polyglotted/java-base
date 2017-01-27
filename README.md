@@ -1,7 +1,5 @@
 # Minimalistic Alpine based Java docker
 
-### Example usage
-
 ```yaml
 image: polyglotted/java-base:8u74
 environment:
