@@ -1,46 +1,49 @@
-FROM alpine:3.3
+FROM frolvlad/alpine-glibc
 MAINTAINER PG Developer <pgtdev@polyglotted.io>
 
-ENV JAVA_VERSION_MAJOR=8  \
-    JAVA_VERSION_MINOR=77 \
-    JAVA_VERSION_BUILD=03 \
-    JAVA_HOME=/jre \
-    PATH=${PATH}:/jre/bin \
-    LANG=C.UTF-8
+RUN apk add --update bash curl ca-certificates unzip
+ENV JAVA_HOME /opt/jdk/jdk1.8.0_121
+ENV PATH $PATH:$JAVA_HOME/bin
 
-# about nsswitch.conf - see https://registry.hub.docker.com/u/frolvlad/alpine-oraclejdk8/dockerfile/
+http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz
 
-RUN apk add --update bash curl ca-certificates && \
-    cd /tmp && \
-    curl -o glibc-2.21-r2.apk \
-        "https://circle-artifacts.com/gh/andyshinn/alpine-pkg-glibc/6/artifacts/0/home/ubuntu/alpine-pkg-glibc/packages/x86_64/glibc-2.21-r2.apk" && \
-    curl -o glibc-bin-2.21-r2.apk \
-        "https://circle-artifacts.com/gh/andyshinn/alpine-pkg-glibc/6/artifacts/0/home/ubuntu/alpine-pkg-glibc/packages/x86_64/glibc-bin-2.21-r2.apk" && \
-    apk add --allow-untrusted \
-        glibc-2.21-r2.apk \
-        glibc-bin-2.21-r2.apk && \
-    /usr/glibc/usr/bin/ldconfig /lib /usr/glibc/usr/lib && \
-    echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
-    curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" \
-        "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/server-jre-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz" \
-        | gunzip -c - | tar -xf - && \
-    curl -o /usr/local/bin/wait-on.sh \
-        "https://gist.githubusercontent.com/pgtdev/205ecd4a7fa5216c5da7ffe160eff6b8/raw/0cffee1aff55888a04350190861178e0c085994f/wait-on.sh" && \
-        chmod 755 /usr/local/bin/wait-on.sh && \
-    apk del curl ca-certificates && \
-    mv jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR}/jre /jre && \
-    rm /jre/bin/jjs && \
-    rm /jre/bin/keytool && \
-    rm /jre/bin/orbd && \
-    rm /jre/bin/pack200 && \
-    rm /jre/bin/policytool && \
-    rm /jre/bin/rmid && \
-    rm /jre/bin/rmiregistry && \
-    rm /jre/bin/servertool && \
-    rm /jre/bin/tnameserv && \
-    rm /jre/bin/unpack200 && \
-    rm /jre/lib/ext/nashorn.jar && \
-    rm /jre/lib/jfr.jar && \
-    rm -rf /jre/lib/jfr && \
-    rm -rf /jre/lib/oblique-fonts && \
-    rm -rf /tmp/* /var/cache/apk/*
+RUN  mkdir -p /opt/jdk && \
+
+     cd /tmp && curl -O -L -H "Cookie: oraclelicense=accept-securebackup-cookie;" \
+        "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz" && \
+     tar -zxf /tmp/jdk-8u121-linux-x64.tar.gz -C /opt/jdk && \
+     rm -f /tmp/jdk-8u121-linux-x64.tar.gz && \
+     rm -rf "$JAVA_HOME/"*src.zip && \
+     rm -rf "$JAVA_HOME/lib/missioncontrol" \
+           "$JAVA_HOME/lib/visualvm" \
+           "$JAVA_HOME/lib/"*javafx* \
+           "$JAVA_HOME/jre/lib/plugin.jar" \
+           "$JAVA_HOME/jre/lib/ext/jfxrt.jar" \
+           "$JAVA_HOME/jre/bin/javaws" \
+           "$JAVA_HOME/jre/lib/javaws.jar" \
+           "$JAVA_HOME/jre/lib/desktop" \
+           "$JAVA_HOME/jre/plugin" \
+           "$JAVA_HOME/jre/lib/"deploy* \
+           "$JAVA_HOME/jre/lib/"*javafx* \
+           "$JAVA_HOME/jre/lib/"*jfx* \
+           "$JAVA_HOME/jre/lib/amd64/libdecora_sse.so" \
+           "$JAVA_HOME/jre/lib/amd64/"libprism_*.so \
+           "$JAVA_HOME/jre/lib/amd64/libfxplugins.so" \
+           "$JAVA_HOME/jre/lib/amd64/libglass.so" \
+           "$JAVA_HOME/jre/lib/amd64/libgstreamer-lite.so" \
+           "$JAVA_HOME/jre/lib/amd64/"libjavafx*.so \
+           "$JAVA_HOME/jre/lib/amd64/"libjfx*.so && \
+    rm -rf "$JAVA_HOME/jre/bin/orbd" \
+           "$JAVA_HOME/jre/bin/pack200" \
+           "$JAVA_HOME/jre/bin/policytool" \
+           "$JAVA_HOME/jre/bin/servertool" \
+           "$JAVA_HOME/jre/bin/tnameserv" \
+           "$JAVA_HOME/jre/bin/unpack200" \
+           "$JAVA_HOME/jre/lib/jfr.jar" \
+           "$JAVA_HOME/jre/lib/jfr" \
+           "$JAVA_HOME/jre/lib/oblique-fonts" && \
+    rm /var/cache/apk/* && \
+    curl -O -L -H "Cookie: oraclelicense=accept-securebackup-cookie;" \
+        "http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip" && \
+    unzip jce_policy-8.zip && cp UnlimitedJCEPolicyJDK8/*.jar $JAVA_HOME/jre/lib/security && \
+    apk del unzip curl ca-certificates
