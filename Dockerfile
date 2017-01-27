@@ -5,10 +5,7 @@ RUN apk add --update bash curl ca-certificates unzip
 ENV JAVA_HOME /opt/jdk/jdk1.8.0_121
 ENV PATH $PATH:$JAVA_HOME/bin
 
-http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz
-
 RUN  mkdir -p /opt/jdk && \
-
      cd /tmp && curl -O -L -H "Cookie: oraclelicense=accept-securebackup-cookie;" \
         "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz" && \
      tar -zxf /tmp/jdk-8u121-linux-x64.tar.gz -C /opt/jdk && \
